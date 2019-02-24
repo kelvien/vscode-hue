@@ -19,12 +19,28 @@ const Huetility = {
         .catch(HandleError);
   },
   lights: {
-    all: () => {
-      const path = '/api/lights';
-      
+    new: (ipAddress: string, username: string): any[] => {
+      const path = `api/${username}/lights/new`;
+      return RP.get(`http://${ipAddress}/${path}`)
+        .then(HandleSuccess)
+        .catch(HandleError);
     },
-    new: () => {
-
+    search: (ipAddress: string, username: string) => {
+      const path = `api/${username}/lights`;
+      return RP.post(`http://${ipAddress}/${path}`)
+          .then(HandleSuccess)
+          .catch(HandleError);
+    },
+    state: (ipAddress: string, username: string, state: object) => {
+      const path = `api/${username}/lights/4/state`;
+      return RP.put(`http://${ipAddress}/${path}`, {
+        json: true,
+        body: {
+          ...state
+        }
+      })
+        .then(HandleSuccess)
+        .catch(HandleError);
     }
   },
   groups: () => {
@@ -32,8 +48,8 @@ const Huetility = {
   },
   configuration: {
     createUser: (ipAddress: string) => {
-      const path = '/api';
-      return RP.post(`http://${ipAddress}${path}`, {
+      const path = 'api';
+      return RP.post(`http://${ipAddress}/${path}`, {
         json: true,
         body: {
             devicetype: `VSCodeExtension#Hue`

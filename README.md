@@ -17,7 +17,6 @@ How to use?
 |VS Code Command|Hue Action|
 |:-|:-|
 |Hue: register new lights|Attempt to discover and register new lights|
-|Hue: show all lights|Show all lights associated to the connected Hue Bridge|
 |Hue: turn all lights on |Turn all lights on|
 |Hue: turn all lights off |Turn all lights off|
 |Hue: turn group lights on |Choose a group and turn all associated lights on|

@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 
 import Huetility from './hue/huetility';
 import { AttemptToRegisterBridgeCallback, BridgeItem, BridgeConfiguration } from './hue/bridge';
+import { SearchingForLightsCallback } from './hue/light';
 
 const BRIDGE_IS_REGISTERED_CONTEXT = 'hue.bridgeIsRegistered';
 
@@ -12,6 +13,7 @@ const getExistingConfiguration = () => {
 }
 
 export async function activate(context: vscode.ExtensionContext) {
+  // Register bridge command
   const registerBridgeCommand = vscode.commands.registerCommand('extension.hue.registerBridge', async () => {
     // Check if Hue Bridge configuration exists and registered
     const existingBridgeConfiguration = getExistingConfiguration();
@@ -65,17 +67,50 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.window.showInformationMessage(`Hue Bridge ${selectedBridge.helpMessage} has successfully been registered.`);
     vscode.commands.executeCommand('setContext', BRIDGE_IS_REGISTERED_CONTEXT, true);
   });
-
   context.subscriptions.push(registerBridgeCommand);
 
   // Commands that need Bridge registration before they are made
   const existingBridgeConfiguration = getExistingConfiguration();
   if (existingBridgeConfiguration && existingBridgeConfiguration.isRegistered()) {
     vscode.commands.executeCommand('setContext', BRIDGE_IS_REGISTERED_CONTEXT, true);
-    const registerNewLightsCommand = vscode.commands.registerCommand('extension.hue.registerNewLights', () => {
-      vscode.window.showInformationMessage('Hello Hue');
+
+    // Register new lights command
+    const registerNewLightsCommand = vscode.commands.registerCommand('extension.hue.registerNewLights', async () => {
+      await Huetility.lights.search(existingBridgeConfiguration.ipAddress, existingBridgeConfiguration.username);
+
+      await vscode.window.withProgress({
+        location: vscode.ProgressLocation.Notification,
+        title: 'Searching for new lights',
+        cancellable: true
+      }, SearchingForLightsCallback);
+      const lightsSinceLastScan: object = await Huetility.lights.new(existingBridgeConfiguration.ipAddress, existingBridgeConfiguration.username);
+      let lightsCount = 0;
+      for (let key in lightsSinceLastScan) {
+        if (key != 'lastscan') {
+          lightsCount++;
+        }
+      }
+      vscode.window.showInformationMessage(`Found and registered ${lightsCount} light(s)`);
     });
     context.subscriptions.push(registerNewLightsCommand);
+
+    // Turn all lights on command
+    const turnOnAllLightsCommand = vscode.commands.registerCommand('extension.hue.turnAllLightsOn', async () => {
+      await Huetility.lights.state(existingBridgeConfiguration.ipAddress, existingBridgeConfiguration.username, {
+        on: true
+      });
+      vscode.window.showInformationMessage('All lights on!');
+    });
+    context.subscriptions.push(turnOnAllLightsCommand);
+
+    // Turn all lights on command
+    const turnOffAllLightsCommand = vscode.commands.registerCommand('extension.hue.turnAllLightsOff', async () => {
+      await Huetility.lights.state(existingBridgeConfiguration.ipAddress, existingBridgeConfiguration.username, {
+        on: false
+      });
+      vscode.window.showInformationMessage('All lights off!');
+    });
+    context.subscriptions.push(turnOffAllLightsCommand);
   }
 }
 

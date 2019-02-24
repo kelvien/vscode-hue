@@ -3,17 +3,19 @@ import * as vscode from 'vscode';
 import Huetility from './huetility';
 
 const MAX_RETRY_COUNT = 10;
-const PAUSE_MILLISECONDS = 2000;
+const PAUSE_MILLISECONDS = 2 * 1000;
 
 export class BridgeConfiguration {
   id: string;
   ipAddress: string;
-  username: string | undefined;
+  username: string = '';
 
   constructor(id: string, ipAddress: string, username?: string) {
     this.id = id;
     this.ipAddress = ipAddress;
-    this.username = username;
+    if (username) {
+      this.username = username;
+    }
   }
 
   isRegistered(): boolean {
