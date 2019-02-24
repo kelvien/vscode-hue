@@ -1,35 +1,43 @@
 Visual Studio Code Extension – hue
 ===
 Hue is VS Code extension that integrates your favorite Hue lights with your favorite code editor!
-Download and give it a try at the [VS Marketplace](https://marketplace.visualstudio.com/items?itemName=kelvien.hue)
+[Download](https://marketplace.visualstudio.com/items?itemName=kelvien.hue) and give it a try
 
 Prerequisites
 ---
-- Connect your hue Bridge to the same network as your computer by LAN cable
+- Connect your Hue Bridge to the same network as your computer by LAN cable
 
 How to use?
 ---
-- Register your Hue Bridge:
-`Ctrl+Shift+p` or on Mac `Cmd+Shift+p` then type `Hue: register bridge`, pick Hue Bridge you want to register
-- See list of supported commands below and play around:
+1. Register your Hue Bridge:
+`Ctrl+Shift+p` or on Mac `Cmd+Shift+p` then type `Hue: register bridge`, pick a Hue Bridge that you want to register
+2. See list of supported commands below:
 
-|VS Code Command|Hue Action|
-|:-|:-|
-|Hue: register new lights|Attempt to discover and register new lights|
-|Hue: groups|See all groups|
-|Hue: turn all lights on |Turn all lights on|
-|Hue: turn all lights off |Turn all lights off|
-|Hue: turn group lights on |Choose a group and turn all associated lights on|
-|Hue: turn group lights off |Choose a group and turn all associated lights off|
-|Hue: enable ambient lights|Enable lights' color to be adaptive to the current file you are on|
-|Hue: disable ambient lights|Disable lights' color to be adaptive to the current file you are on|
-|Hue: set language to color|Set a rule for a language to a color|
-|Hue: set theme to color|Set a rule for a theme to a color|
-|Hue: unregister bridge|Unregister bridge that you have been registered to|
+|Command|Command Palette|Hue Action|
+|:-|:-|:-|
+|extension.hue.registerBridge|Hue: register bridge|Attempt to discover and register a Hue bridge|
+|extension.hue.registerLights|Hue: register new lights|Attempt to discover and register new Hue lights|
+||Hue: lights|Turn on/off/color/brightness of all of your lights|
+||Hue: turn all lights on |Turn all Hue lights on|
+||Hue: turn all lights off |Turn all Hue lights off|
+||Hue: groups|See all groups|
+||Hue: turn group lights on |Choose a group and turn all associated lights on|
+||Hue: turn group lights off |Choose a group and turn all associated lights off|
+||Hue: enable ambient lights|Enable lights' color to be adaptive to the current file you are on|
+||Hue: disable ambient lights|Disable lights' color to be adaptive to the current file you are on|
+||Hue: set language to color|Set a rule for a language to a color|
+||Hue: set theme to color|Set a rule for a theme to a color|
+
+3. See list of registered keybindings below:
+
+|Key|Mac Key|Command|
+|:-|:-|:-|
+|<kbd>Ctrl+h 1</kbd>|<kbd>Cmd+h 1</kbd>|extension.hue.turnAllLightsOn|
+|<kbd>Ctrl+h 0</kbd>|<kbd>Cmd+h 0</kbd>|extension.hue.turnAllLightsOff|
 
 Settings (Optional)
 ---
-Settings in Hue can be used to override the Hue Bridge IP address, and the ambient lighting rules, etc.
+Settings can be used to override the Hue Bridge IP address, and the ambient lighting rules, etc.
 
 |Key|Type|Default value|
 |:--|:--|:--|

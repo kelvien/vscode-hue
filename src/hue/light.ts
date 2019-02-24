@@ -10,7 +10,7 @@ export async function SearchingForLightsCallback(progress: vscode.Progress<{ inc
     await new Promise((resolve) => setTimeout(() => resolve(), SECOND_MILLISECONDS));
     progress.report({
       increment: (100 / SEARCH_SECONDS),
-      message: `${second}s`
+      message: `${(second - 1)}s`
     });
   }
 

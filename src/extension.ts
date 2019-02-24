@@ -4,7 +4,14 @@ import Huetility from './hue/huetility';
 import { AttemptToRegisterBridgeCallback, BridgeItem, BridgeConfiguration } from './hue/bridge';
 import { SearchingForLightsCallback } from './hue/light';
 
-const BRIDGE_IS_REGISTERED_CONTEXT = 'hue.bridgeIsRegistered';
+/**
+ * Context variables
+ */
+const CONTEXT_BRIDGE_IS_REGISTERED = 'hue.bridgeIsRegistered';
+
+/**
+ * Settings location
+ */
 const SETTINGS_LOCATION = 'settings';
 
 const getExistingConfiguration = () => {
@@ -16,7 +23,7 @@ const getExistingConfiguration = () => {
 const registerCommandsThatRequiresBridgeRegistration = (context: vscode.ExtensionContext) => {
   const existingBridgeConfiguration = getExistingConfiguration();
   if (existingBridgeConfiguration && existingBridgeConfiguration.isRegistered()) {
-    vscode.commands.executeCommand('setContext', BRIDGE_IS_REGISTERED_CONTEXT, true);
+    vscode.commands.executeCommand('setContext', CONTEXT_BRIDGE_IS_REGISTERED, true);
     // Register new lights command
     const registerNewLightsCommand = vscode.commands.registerCommand('extension.hue.registerNewLights', async () => {
       await Huetility.lights.search(existingBridgeConfiguration.ipAddress, existingBridgeConfiguration.username);
@@ -60,6 +67,15 @@ const registerCommandsThatRequiresBridgeRegistration = (context: vscode.Extensio
 }
 
 export async function activate(context: vscode.ExtensionContext) {
+  vscode.workspace.onDidChangeConfiguration(() => {
+    const existingBridgeConfiguration = getExistingConfiguration();
+    if (existingBridgeConfiguration && existingBridgeConfiguration.isRegistered()) {
+      vscode.commands.executeCommand('setContext', CONTEXT_BRIDGE_IS_REGISTERED, true);
+    } else {
+      vscode.commands.executeCommand('setContext', CONTEXT_BRIDGE_IS_REGISTERED, false);
+    }
+  });
+
   // Register bridge command
   const registerBridgeCommand = vscode.commands.registerCommand('extension.hue.registerBridge', async () => {
     // Check if Hue Bridge configuration exists and registered
@@ -112,8 +128,7 @@ export async function activate(context: vscode.ExtensionContext) {
     selectedBridge.setUsername(registeredUsername);
     await (vscode.workspace.getConfiguration(SETTINGS_LOCATION)).update('hue.bridge', selectedBridge.configuration, vscode.ConfigurationTarget.Global);
     vscode.window.showInformationMessage(`Hue Bridge ${selectedBridge.helpMessage} has successfully been registered.`);
-    vscode.commands.executeCommand('setContext', BRIDGE_IS_REGISTERED_CONTEXT, true);
-    registerCommandsThatRequiresBridgeRegistration(context);
+    vscode.commands.executeCommand('setContext', CONTEXT_BRIDGE_IS_REGISTERED, true);
   });
   context.subscriptions.push(registerBridgeCommand);
 

@@ -17,6 +17,7 @@
     "color": "#C80000",
     "theme": "dark"
   },
+  "icon": "images/icon.png",
   "main": "out/extension.js",
   "scripts": {
     "compile": "tsc -p ./",
@@ -77,8 +78,26 @@
         "title": "Hue: turn all lights off"
       }
     ],
+    "keybindings": [
+      {
+        "command": "extension.hue.turnAllLightsOn",
+        "key": "ctrl+h 1",
+        "mac": "cmd+h 1",
+        "when": "hue.bridgeIsRegistered"
+      },
+      {
+        "command": "extension.hue.turnAllLightsOff",
+        "key": "ctrl+h 0",
+        "mac": "cmd+h 0",
+        "when": "hue.bridgeIsRegistered"
+      }
+    ],
     "menus": {
       "commandPalette": [
+        {
+          "command": "extension.hue.registerBridge",
+          "when": "!hue.bridgeIsRegistered"
+        },
         {
           "command": "extension.hue.registerNewLights",
           "when": "hue.bridgeIsRegistered"
