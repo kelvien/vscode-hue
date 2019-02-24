@@ -12,21 +12,26 @@ const HandleError = (error: any) => {
 };
 
 const Huetility = {
-  discover: function() {
+  discover: () => {
     const url = 'https://discovery.meethue.com';
     return RP.get(url)
         .then(HandleSuccess)
         .catch(HandleError);
   },
-  light: function() {
-    const path = '/api';
+  lights: {
+    all: () => {
+      const path = '/api/lights';
+      
+    },
+    new: () => {
 
+    }
   },
-  group: function() {
+  groups: () => {
 
   },
   configuration: {
-    createUser: function(ipAddress: string) {
+    createUser: (ipAddress: string) => {
       const path = '/api';
       return RP.post(`http://${ipAddress}${path}`, {
         json: true,
