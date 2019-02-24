@@ -1,0 +1,77 @@
+{
+  "name": "vscode-hue",
+  "version": "1.0.0",
+  "publisher": "Kelvien Hidayat",
+  "homepage": "https://github.com/kelvien/vscode-hue",
+  "engines": {
+    "vscode": "^1.31.1"
+  },
+  "license": "MIT",
+  "displayName": "hue",
+  "description": "This extension integrates your favorite hue lights with your favorite code editor!",
+  "categories": [
+    "Themes",
+    "Other"
+  ],
+  "galleryBanner": {
+    "color": "#C80000",
+    "theme": "dark"
+  },
+  "main": "out/extension.js",
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "test": "npm run compile && node ./node_modules/vscode/bin/test",
+    "vscode:prepublish": "npm run compile"
+  },
+  "devDependencies": {
+    "@types/node": "^10.12.21",
+    "@types/mocha": "^2.2.42",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.4",
+    "typescript": "^3.3.1",
+    "tslint": "^5.12.1",
+    "vscode": "^1.1.28"
+  },
+  "activationEvents": [
+    "*"
+  ],
+  "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "VS Code Extension – Hue: Configuration",
+      "properties": {
+        "hue.bridge": {
+          "type": "object",
+          "default": {},
+          "description": "Hue Bridge information"
+        },
+        "hue.ambient.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "flag that indicates if ambient lights is enabled or not"
+        },
+        "hue.ambient.rules": {
+          "type": "object",
+          "default": {},
+          "description": "sets of rules that dictates what colors to use on what file's theme/language"
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "extension.hue.registerBridge",
+        "title": "Hue: register bridge"
+      },
+      {
+        "command": "extension.hue.registerNewLights",
+        "title": "Hue: register new lights"
+      },
+      {
+        "command": "extension.hue.showAllLights",
+        "title": "Hue: show all lights"
+      }
+    ]
+  }
+}
