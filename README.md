@@ -1,22 +1,22 @@
 Visual Studio Code Extension – hue
 ===
-This extension integrates your favorite Hue lights with your favorite code editor!
+Hue is VS Code extension that integrates your favorite Hue lights with your favorite code editor!
+Download and give it a try at the [VS Marketplace](https://marketplace.visualstudio.com/items?itemName=kelvien.hue)
 
 Prerequisites
 ---
-- Be in a workspace (This extension needs to save your configuration in workspace-level)
-- Install VS Code extension: `hue`
 - Connect your hue Bridge to the same network as your computer by LAN cable
 
 How to use?
 ---
 - Register your Hue Bridge:
-`Ctrl+Shift+p` or on Mac `Cmd+Shift+p` then type `Hue: register`, pick Hue Bridge you want to register
+`Ctrl+Shift+p` or on Mac `Cmd+Shift+p` then type `Hue: register bridge`, pick Hue Bridge you want to register
 - See list of supported commands below and play around:
 
 |VS Code Command|Hue Action|
 |:-|:-|
 |Hue: register new lights|Attempt to discover and register new lights|
+|Hue: groups|See all groups|
 |Hue: turn all lights on |Turn all lights on|
 |Hue: turn all lights off |Turn all lights off|
 |Hue: turn group lights on |Choose a group and turn all associated lights on|
@@ -29,7 +29,7 @@ How to use?
 
 Settings (Optional)
 ---
-Settings in Hue can be used to override the Hue Bridge username, and the ambient lighting rules, etc.
+Settings in Hue can be used to override the Hue Bridge IP address, and the ambient lighting rules, etc.
 
 |Key|Type|Default value|
 |:--|:--|:--|
@@ -40,21 +40,18 @@ Settings in Hue can be used to override the Hue Bridge username, and the ambient
 Example of `settings.json`:
 ```json
 {
-  "hue": {
-    "bridge": {
-      "id": "ABC",
-      "ipAddress": "192.168.123",
-      "username": "ZXY"
+  "settings.hue.bridge": {
+    "id": "ABC",
+    "ipAddress": "192.168.1.123",
+    "username": "ZXY",
+  },
+  "settings.hue.ambient.enabled": true,
+  "settings.hue.ambient.rules": {
+    "javascript": {
+      "color": "#22eeee",
+      "brightness": "50"
     },
-    "ambient": {
-      "rules": {
-        "javascript": {
-          "color": "#22eeee",
-          "brightness": "50"
-        },
-        "markdown": "white"
-      }
-    }
+    "markdown": "white"
   }
 }
 ```

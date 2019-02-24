@@ -31,16 +31,26 @@ const Huetility = {
           .then(HandleSuccess)
           .catch(HandleError);
     },
-    state: (ipAddress: string, username: string, state: object) => {
-      const path = `api/${username}/lights/4/state`;
-      return RP.put(`http://${ipAddress}/${path}`, {
-        json: true,
-        body: {
-          ...state
-        }
-      })
-        .then(HandleSuccess)
-        .catch(HandleError);
+    all: (ipAddress: string, username: string) => {
+      const path = `api/${username}/lights`;
+      return RP.get(`http://${ipAddress}/${path}`)
+          .then(HandleSuccess)
+          .catch(HandleError);
+    },
+    state: (ipAddress: string, username: string, lights: any[], state: object) => {
+      const path = `api/${username}/lights`;
+      let lightPromises: any[] = [];
+      for (const lightID in lights) {
+        lightPromises.push(
+          RP.put(`http://${ipAddress}/${path}/${lightID}/state`, {
+            json: true,
+            body: state
+          })
+              .then(HandleSuccess)
+              .catch(HandleError)
+        );
+      }
+      return Promise.all(lightPromises);
     }
   },
   groups: () => {

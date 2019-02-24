@@ -49,10 +49,9 @@ export function AttemptToRegisterBridgeCallback(bridge: BridgeItem): (progress: 
 
     let username = '';
     for (let retryCount = 0; retryCount < MAX_RETRY_COUNT; retryCount++) {
-      let createUserResponse = await Huetility.configuration.createUser(bridge.configuration.ipAddress);
-
-      // Pause before retrying
+      // Pause before trying
       await new Promise((resolve) => setTimeout(() => resolve(), PAUSE_MILLISECONDS));
+      let createUserResponse = await Huetility.configuration.createUser(bridge.configuration.ipAddress);
       progress.report({ increment: (100 / MAX_RETRY_COUNT) });
 
       const validResponse = createUserResponse && createUserResponse[0];

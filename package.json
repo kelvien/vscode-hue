@@ -40,19 +40,19 @@
   "contributes": {
     "configuration": {
       "type": "object",
-      "title": "VS Code Extension – Hue: Configuration",
+      "title": "Hue",
       "properties": {
-        "hue.bridge": {
+        "settings.hue.bridge": {
           "type": "object",
           "default": {},
           "description": "Hue Bridge information"
         },
-        "hue.ambient.enabled": {
+        "settings.hue.ambient.enabled": {
           "type": "boolean",
           "default": false,
           "description": "flag that indicates if ambient lights is enabled or not"
         },
-        "hue.ambient.rules": {
+        "settings.huhue.ambient.rules": {
           "type": "object",
           "default": {},
           "description": "sets of rules that dictates what colors to use on what file's theme/language"
