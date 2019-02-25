@@ -56,6 +56,7 @@ export async function activate(context: vscode.ExtensionContext) {
   const turnAllLightsOnCommand = vscode.commands.registerCommand('extension.hue.turnAllLightsOn', async () => {
     await turnAllLightsState({
       on: true,
+      bri: 254,
       xy: [0.3227, 0.329] // white
     });
   });
