@@ -8,7 +8,7 @@ Besides providing basic commands to control your Hue lights, you can also set ru
 
 See it in action
 ---
-![](https://media.giphy.com/media/w60hRih0TKGGsbm1Jv/giphy.gif)
+![Sample](https://media.giphy.com/media/327g6NJrgv07cSZQv8/giphy.gif)
 
 Dev note
 ---
