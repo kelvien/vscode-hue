@@ -124,18 +124,16 @@ export async function adapt (languageID: string) {
     Object.assign(rules, userRules);
 
     const rule = rules[languageID];
-    const { groups, lights, state } = rule;
-    if (rule && state) {
-      if (lights) {
+    if (rule) {
+      const { groups, lights, state } = rule;
+      if (lights && state) {
         const lightsAPI = new LightsAPI(bridgeConfiguration.id, bridgeConfiguration.ipAddress, bridgeConfiguration.username);
-        if (state) {
-          if (lights === 'all') {
-            await lightsAPI.setAllLightsState(rule['state']);
-          } else {
-            await lightsAPI.setLightsState(rule['lights'], rule['state']);
-          }
+        if (lights === 'all') {
+          await lightsAPI.setAllLightsState(state);
+        } else {
+          await lightsAPI.setLightsState(lights, state);
         }
-      } else if(groups) {
+      } else if(groups && state) {
         const groupsAPI = new GroupsAPI(bridgeConfiguration.id, bridgeConfiguration.ipAddress, bridgeConfiguration.username);
         await groupsAPI.setGroupsState(groups, state);
       }
