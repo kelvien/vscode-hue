@@ -6,6 +6,10 @@ Besides providing basic commands to control your Hue lights, you can also set ru
 
 [Download](https://marketplace.visualstudio.com/items?itemName=kelvien.vscode-hue) and give it a try
 
+See it in action
+---
+![](https://media.giphy.com/media/w60hRih0TKGGsbm1Jv/giphy.gif)
+
 Dev note
 ---
 There are still a lot more rooms to be covered in this extension, and please feel free to contribute!
