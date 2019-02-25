@@ -40,19 +40,6 @@ export async function activate(context: vscode.ExtensionContext) {
   });
   context.subscriptions.push(changeActiveTextEditorListener);
 
-  // Setup event listener to text editor options
-  const changeTextEditorOptionsListener = vscode.workspace.onDidOpenTextDocument(async (e: vscode.TextDocument): Promise<any> => {
-    if (!e) {
-      return;
-    }
-    const isAmbientLightsEnabled = await (vscode.workspace.getConfiguration('settings')).get('hue.ambient.enabled');
-    if (!isAmbientLightsEnabled) {
-      return;
-    }
-    await adapt(e.languageId);
-  });
-  context.subscriptions.push(changeTextEditorOptionsListener);
-
   // Register bridge command
   const registerBridgeCommand = vscode.commands.registerCommand('extension.hue.registerBridge', async () => {
     await registerBridge("asd");
