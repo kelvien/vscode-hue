@@ -1,139 +1,120 @@
 import * as vscode from 'vscode';
 
-import Huetility from './hue/huetility';
-import { AttemptToRegisterBridgeCallback, BridgeItem, BridgeConfiguration } from './hue/bridge';
-import { SearchingForLightsCallback } from './hue/light';
+import { CONTEXT_BRIDGE_IS_REGISTERED, getBridgeConfiguration, registerBridge } from './hue/bridge';
+import { registerNewLights, turnAllLightsState } from './hue/light';
+import {} from './hue/groups';
+import { adapt } from './hue/ambient_lights';
 
 /**
- * Context variables
+ * Activate entrypoint
  */
-const CONTEXT_BRIDGE_IS_REGISTERED = 'hue.bridgeIsRegistered';
-
-/**
- * Settings location
- */
-const SETTINGS_LOCATION = 'settings';
-
-const getExistingConfiguration = () => {
-  const existingConfig: BridgeConfiguration | undefined = (vscode.workspace.getConfiguration(SETTINGS_LOCATION)).get('hue.bridge');
-  const existingBridgeConfiguration = existingConfig && new BridgeConfiguration(existingConfig.id, existingConfig.ipAddress, existingConfig.username);
-  return existingBridgeConfiguration;
-}
-
-const registerCommandsThatRequiresBridgeRegistration = (context: vscode.ExtensionContext) => {
-  const existingBridgeConfiguration = getExistingConfiguration();
-  if (existingBridgeConfiguration && existingBridgeConfiguration.isRegistered()) {
-    vscode.commands.executeCommand('setContext', CONTEXT_BRIDGE_IS_REGISTERED, true);
-    // Register new lights command
-    const registerNewLightsCommand = vscode.commands.registerCommand('extension.hue.registerNewLights', async () => {
-      await Huetility.lights.search(existingBridgeConfiguration.ipAddress, existingBridgeConfiguration.username);
-
-      await vscode.window.withProgress({
-        location: vscode.ProgressLocation.Notification,
-        title: 'Searching for new lights',
-        cancellable: true
-      }, SearchingForLightsCallback);
-      const lightsSinceLastScan: object = await Huetility.lights.new(existingBridgeConfiguration.ipAddress, existingBridgeConfiguration.username);
-      let lightsCount = 0;
-      for (let key in lightsSinceLastScan) {
-        if (key != 'lastscan') {
-          lightsCount++;
-        }
-      }
-      vscode.window.showInformationMessage(`Found and registered ${lightsCount} light(s)`);
-    });
-    context.subscriptions.push(registerNewLightsCommand);
-
-    // Turn all lights on command
-    const turnOnAllLightsCommand = vscode.commands.registerCommand('extension.hue.turnAllLightsOn', async () => {
-      const lights = await Huetility.lights.all(existingBridgeConfiguration.ipAddress, existingBridgeConfiguration.username);
-      await Huetility.lights.state(existingBridgeConfiguration.ipAddress, existingBridgeConfiguration.username, lights, {
-        on: true
-      });
-      vscode.window.showInformationMessage('All lights on!');
-    });
-    context.subscriptions.push(turnOnAllLightsCommand);
-
-    // Turn all lights on command
-    const turnOffAllLightsCommand = vscode.commands.registerCommand('extension.hue.turnAllLightsOff', async () => {
-      const lights = await Huetility.lights.all(existingBridgeConfiguration.ipAddress, existingBridgeConfiguration.username);
-      await Huetility.lights.state(existingBridgeConfiguration.ipAddress, existingBridgeConfiguration.username, lights, {
-        on: false
-      });
-      vscode.window.showInformationMessage('All lights off!');
-    });
-    context.subscriptions.push(turnOffAllLightsCommand);
-  }
-}
-
 export async function activate(context: vscode.ExtensionContext) {
-  vscode.workspace.onDidChangeConfiguration(() => {
-    const existingBridgeConfiguration = getExistingConfiguration();
-    if (existingBridgeConfiguration && existingBridgeConfiguration.isRegistered()) {
+  // Set context on activation depending on the current Bridge configuration
+  const existingBridgeConfiguration = getBridgeConfiguration();
+  if (existingBridgeConfiguration.isRegistered()) {
+    vscode.commands.executeCommand('setContext', CONTEXT_BRIDGE_IS_REGISTERED, true);
+  }
+
+  // Setup event listener to Bridge configuration in case user changes it manually in the future
+  const bridgeConfigurationChangesListener = vscode.workspace.onDidChangeConfiguration(() => {
+    const bridgeConfiguration = getBridgeConfiguration();
+    if (bridgeConfiguration && bridgeConfiguration.isRegistered()) {
       vscode.commands.executeCommand('setContext', CONTEXT_BRIDGE_IS_REGISTERED, true);
-    } else {
-      vscode.commands.executeCommand('setContext', CONTEXT_BRIDGE_IS_REGISTERED, false);
+      return;
     }
+    vscode.commands.executeCommand('setContext', CONTEXT_BRIDGE_IS_REGISTERED, false);
+    return;
   });
+  context.subscriptions.push(bridgeConfigurationChangesListener);
+
+  // Setup event listener to the current active text editor
+  const changeActiveTextEditorListener = vscode.window.onDidChangeActiveTextEditor(async (e: vscode.TextEditor | undefined): Promise<any> => {
+    if (!e) {
+      return;
+    }
+    const isAmbientLightsEnabled = await (vscode.workspace.getConfiguration('settings')).get('hue.ambient.enabled');
+    if (!isAmbientLightsEnabled) {
+      return;
+    }
+    await adapt(e.document.languageId);
+  });
+  context.subscriptions.push(changeActiveTextEditorListener);
+
+  // Setup event listener to text editor options
+  const changeTextEditorOptionsListener = vscode.workspace.onDidOpenTextDocument(async (e: vscode.TextDocument): Promise<any> => {
+    if (!e) {
+      return;
+    }
+    const isAmbientLightsEnabled = await (vscode.workspace.getConfiguration('settings')).get('hue.ambient.enabled');
+    if (!isAmbientLightsEnabled) {
+      return;
+    }
+    await adapt(e.languageId);
+  });
+  context.subscriptions.push(changeTextEditorOptionsListener);
 
   // Register bridge command
   const registerBridgeCommand = vscode.commands.registerCommand('extension.hue.registerBridge', async () => {
-    // Check if Hue Bridge configuration exists and registered
-    const existingBridgeConfiguration = getExistingConfiguration();
-    if (existingBridgeConfiguration && existingBridgeConfiguration.isRegistered()) {
-      const existingBridgeItem = new BridgeItem(existingBridgeConfiguration);
-      // Hue Bridge settings already exists, proceed and replace current settings?
-      const overrideSettingDecision: { label: string, value: boolean } | undefined = await vscode.window.showQuickPick<{ label: string, value: boolean }>([{
-        label: 'No',
-        value: false
-      }, {
-        label: 'Yes',
-        value: true
-      }], {
-        canPickMany: false,
-        ignoreFocusOut: false,
-        placeHolder: `You have Hue Bridge ${existingBridgeItem.helpMessage} registered in your settings. Do you want to proceed and replace the current settings anyway?`
-      });
-      if (!overrideSettingDecision || (overrideSettingDecision && !overrideSettingDecision.value)) {
-        return;
-      }
-    }
-
-    // Either we can't find Hue Bridge settings or user wants to replace their current settings
-    const bridges = await Huetility.discover();
-    if (!bridges) {
-      vscode.window.showWarningMessage('Unable to find Hue Bridge. Make sure that your Hue Bridge is connected to your network your computer is currently on.');
-      return;
-    }
-    const bridgeItems = bridges.map((bridge: any) => new BridgeItem(
-        new BridgeConfiguration(bridge.id, bridge.internalipaddress))
-    );
-    const selectedBridge = await vscode.window.showQuickPick<BridgeItem>(bridgeItems, {
-      canPickMany: false,
-      ignoreFocusOut: false,
-      placeHolder: 'Select a Hue Bridge you want to register'
-    });
-    if (!selectedBridge) {
-      return;
-    }
-    const registeredUsername = await vscode.window.withProgress({
-      location: vscode.ProgressLocation.Notification,
-      title: "Locate and press the 'link' button on the Hue Bridge you are registering",
-      cancellable: true
-    }, AttemptToRegisterBridgeCallback(selectedBridge));
-    if (!registeredUsername) {
-      vscode.window.showErrorMessage('Unable to register Hue Bridge. Please try again');
-      return;
-    }
-    selectedBridge.setUsername(registeredUsername);
-    await (vscode.workspace.getConfiguration(SETTINGS_LOCATION)).update('hue.bridge', selectedBridge.configuration, vscode.ConfigurationTarget.Global);
-    vscode.window.showInformationMessage(`Hue Bridge ${selectedBridge.helpMessage} has successfully been registered.`);
-    vscode.commands.executeCommand('setContext', CONTEXT_BRIDGE_IS_REGISTERED, true);
+    await registerBridge("asd");
   });
   context.subscriptions.push(registerBridgeCommand);
 
-  // Commands that need Bridge registration before they are made
-  registerCommandsThatRequiresBridgeRegistration(context);
+  // Register new lights command
+  const registerNewLightsCommand = vscode.commands.registerCommand('extension.hue.registerNewLights', async () => {
+    await registerNewLights();
+  });
+  context.subscriptions.push(registerNewLightsCommand);
+
+  // Turn all lights on command
+  const turnAllLightsOnCommand = vscode.commands.registerCommand('extension.hue.turnAllLightsOn', async () => {
+    await turnAllLightsState({
+      on: true,
+      xy: [0.3227, 0.329] // white
+    });
+  });
+  context.subscriptions.push(turnAllLightsOnCommand);
+
+  // Turn all lights off command
+  const turnOffAllLightsCommand = vscode.commands.registerCommand('extension.hue.turnAllLightsOff', async () => {
+    await turnAllLightsState({
+      on: false,
+      xy: [0.3227, 0.329] // white
+    });
+  });
+  context.subscriptions.push(turnOffAllLightsCommand);
+
+  // Change all lights state command
+  const changeAllLightsStateCommand = vscode.commands.registerCommand('extension.hue.changeAllLightsState', async () => {
+    await turnAllLightsState({}, true);
+  });
+  context.subscriptions.push(changeAllLightsStateCommand);
+
+  // All groups command
+  const groupsCommand = vscode.commands.registerCommand('extension.hue.groups', async () => {
+    vscode.window.showInformationMessage('Groups');
+  });
+  context.subscriptions.push(groupsCommand);
+
+  // Enable ambient lights command
+  const enableAmbientLightsCommand = vscode.commands.registerCommand('extension.hue.enableAmbientLights', async () => {
+    await (vscode.workspace.getConfiguration('settings')).update('hue.ambient.enabled', true, vscode.ConfigurationTarget.Global);
+    if (vscode.window.activeTextEditor) {
+      adapt(vscode.window.activeTextEditor.document.languageId);
+    }
+  });
+  context.subscriptions.push(enableAmbientLightsCommand);
+
+  // Disable ambient lights command
+  const disableAmbientLightsCommand = vscode.commands.registerCommand('extension.hue.disableAmbientLights', async () => {
+    await (vscode.workspace.getConfiguration('settings')).update('hue.ambient.enabled', false, vscode.ConfigurationTarget.Global);
+    if (vscode.window.activeTextEditor) {
+      adapt(vscode.window.activeTextEditor.document.languageId);
+    }
+  });
+  context.subscriptions.push(disableAmbientLightsCommand);
 }
 
+/**
+ * Deactivate entrypoint
+ */
 export function deactivate() {}

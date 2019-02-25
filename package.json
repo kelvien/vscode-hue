@@ -53,7 +53,7 @@
           "default": false,
           "description": "flag that indicates if ambient lights is enabled or not"
         },
-        "settings.huhue.ambient.rules": {
+        "settings.hue.ambient.rules": {
           "type": "object",
           "default": {},
           "description": "sets of rules that dictates what colors to use on what file's theme/language"
@@ -76,6 +76,14 @@
       {
         "command": "extension.hue.turnAllLightsOff",
         "title": "Hue: turn all lights off"
+      },
+      {
+        "command": "extension.hue.enableAmbientLights",
+        "title": "Hue: enable ambient lights"
+      },
+      {
+        "command": "extension.hue.disableAmbientLights",
+        "title": "Hue: disable ambient lights"
       }
     ],
     "keybindings": [
@@ -95,8 +103,7 @@
     "menus": {
       "commandPalette": [
         {
-          "command": "extension.hue.registerBridge",
-          "when": "!hue.bridgeIsRegistered"
+          "command": "extension.hue.registerBridge"
         },
         {
           "command": "extension.hue.registerNewLights",
@@ -108,6 +115,14 @@
         },
         {
           "command": "extension.hue.turnAllLightsOff",
+          "when": "hue.bridgeIsRegistered"
+        },
+        {
+          "command": "extension.hue.enableAmbientLights",
+          "when": "hue.bridgeIsRegistered"
+        },
+        {
+          "command": "extension.hue.disableAmbientLights",
           "when": "hue.bridgeIsRegistered"
         }
       ]
