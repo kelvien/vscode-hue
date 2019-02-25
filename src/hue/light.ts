@@ -57,5 +57,11 @@ export async function turnAllLightsState(state: any, prompt?: boolean) {
     }
   }
   await lightsAPI.setAllLightsState(state);
-  vscode.window.showInformationMessage('All lights state have been changed');
+  let message = '';
+  if (state.on) {
+    message = 'on';
+  } else {
+    message = 'off';
+  }
+  vscode.window.showInformationMessage(`All lights have been turned ${message}`);
 }

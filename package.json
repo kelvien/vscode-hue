@@ -1,7 +1,7 @@
 {
   "name": "vscode-hue",
-  "version": "1.0.1",
-  "publisher": "kelvien",
+  "version": "1.0.0",
+  "publisher": "KelvienHidayat",
   "homepage": "https://github.com/kelvien/vscode-hue",
   "repository": {
     "type": "git",
@@ -30,11 +30,13 @@
     "test": "npm run compile && node ./node_modules/vscode/bin/test",
     "vscode:prepublish": "npm run compile"
   },
+  "dependencies": {
+    "request": "^2.88.0",
+    "request-promise": "^4.2.4"
+  },
   "devDependencies": {
     "@types/node": "^10.12.21",
     "@types/mocha": "^2.2.42",
-    "request": "^2.88.0",
-    "request-promise": "^4.2.4",
     "typescript": "^3.3.1",
     "tslint": "^5.12.1",
     "vscode": "^1.1.28"
@@ -67,27 +69,27 @@
     "commands": [
       {
         "command": "extension.hue.registerBridge",
-        "title": "Hue: register bridge"
+        "title": "Hue: Register bridge"
       },
       {
         "command": "extension.hue.registerNewLights",
-        "title": "Hue: register new lights"
+        "title": "Hue: Register new lights"
       },
       {
         "command": "extension.hue.turnAllLightsOn",
-        "title": "Hue: turn all lights on"
+        "title": "Hue: Turn all lights on"
       },
       {
         "command": "extension.hue.turnAllLightsOff",
-        "title": "Hue: turn all lights off"
+        "title": "Hue: Turn all lights off"
       },
       {
         "command": "extension.hue.enableAmbientLights",
-        "title": "Hue: enable ambient lights"
+        "title": "Hue: Enable ambient lights"
       },
       {
         "command": "extension.hue.disableAmbientLights",
-        "title": "Hue: disable ambient lights"
+        "title": "Hue: Disable ambient lights"
       }
     ],
     "keybindings": [

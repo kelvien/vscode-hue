@@ -17,17 +17,17 @@ Prerequisites
 How to use?
 ---
 1. Register your Hue Bridge:
-`Ctrl+Shift+p` or on Mac `Cmd+Shift+p` then type `Hue: register bridge`, pick a Hue Bridge that you want to register
+`Ctrl+Shift+p` or on Mac `Cmd+Shift+p` then type `Hue: Register bridge`, pick a Hue Bridge that you want to register
 2. See list of supported commands below:
 
 |Command|Command Palette|Hue Action|Keyboard shorcuts|Mac keyboard shortcuts
 |:-|:-|:-|:-|:-|
-|extension.hue.registerBridge|Hue: register bridge|Attempt to discover and register a Hue bridge|||
-|extension.hue.registerLights|Hue: register new lights|Attempt to discover and register new Hue lights|||
-|extension.hue.turnAllLightsOn|Hue: turn all lights on |Turn all Hue lights on|<kbd>Ctrl+h 1</kbd>|<kbd>Cmd+h 1</kbd>|
-|extension.hue.turnAllLightsOff|Hue: turn all lights off |Turn all Hue lights off|<kbd>Ctrl+h 0</kbd>|<kbd>Cmd+h 0</kbd>|
-|extension.hue.enableAmbientLights|Hue: enable ambient lights|Enable lights' color to be adaptive to the current file you are on|||
-|extension.hue.disableAmbientLights|Hue: disable ambient lights|Disable lights' color to be adaptive to the current file you are on|||
+|extension.hue.registerBridge|Hue: Register bridge|Attempt to discover and register a Hue bridge|||
+|extension.hue.registerLights|Hue: Register new lights|Attempt to discover and register new Hue lights|||
+|extension.hue.turnAllLightsOn|Hue: Turn all lights on |Turn all Hue lights on|<kbd>Ctrl+h 1</kbd>|<kbd>Cmd+h 1</kbd>|
+|extension.hue.turnAllLightsOff|Hue: Turn all lights off |Turn all Hue lights off|<kbd>Ctrl+h 0</kbd>|<kbd>Cmd+h 0</kbd>|
+|extension.hue.enableAmbientLights|Hue: Enable ambient lights|Enable lights' color to be adaptive to the current file you are on|||
+|extension.hue.disableAmbientLights|Hue: Disable ambient lights|Disable lights' color to be adaptive to the current file you are on|||
 
 Settings (Optional)
 ---
