@@ -4,7 +4,7 @@ Hue is VS Code extension that integrates your favorite Hue lights with your favo
 
 Besides providing basic commands to control your Hue lights, you can also set rules for your Hue Lights to change according to your preferences and the current file you are editing.
 
-[Download](https://marketplace.visualstudio.com/items?itemName=kelvien.hue) and give it a try
+[Download](https://marketplace.visualstudio.com/items?itemName=kelvien.vscode-hue) and give it a try
 
 Dev note
 ---
