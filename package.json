@@ -1,7 +1,7 @@
 {
   "name": "vscode-hue",
-  "version": "1.0.4",
-  "publisher": "kelvien",
+  "version": "1.0.0",
+  "publisher": "KelvienHidayat",
   "homepage": "https://github.com/kelvien/vscode-hue",
   "repository": {
     "type": "git",
