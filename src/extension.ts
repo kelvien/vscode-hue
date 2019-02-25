@@ -2,7 +2,6 @@ import * as vscode from 'vscode';
 
 import { CONTEXT_BRIDGE_IS_REGISTERED, getBridgeConfiguration, registerBridge } from './hue/bridge';
 import { registerNewLights, turnAllLightsState } from './hue/light';
-import {} from './hue/groups';
 import { adapt } from './hue/ambient_lights';
 
 /**
@@ -56,6 +55,7 @@ export async function activate(context: vscode.ExtensionContext) {
   const turnAllLightsOnCommand = vscode.commands.registerCommand('extension.hue.turnAllLightsOn', async () => {
     await turnAllLightsState({
       on: true,
+      bri: 254,
       xy: [0.3227, 0.329] // white
     });
   });
@@ -106,4 +106,10 @@ export async function activate(context: vscode.ExtensionContext) {
 /**
  * Deactivate entrypoint
  */
-export function deactivate() {}
+export async function deactivate() {
+  await turnAllLightsState({
+    on: true,
+    bri: 254,
+    xy: [0.3227, 0.329] // white
+  });
+}
