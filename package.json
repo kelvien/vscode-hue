@@ -1,6 +1,6 @@
 {
   "name": "vscode-hue",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "publisher": "kelvien",
   "homepage": "https://github.com/kelvien/vscode-hue",
   "repository": {
@@ -18,7 +18,7 @@
     "Other"
   ],
   "galleryBanner": {
-    "color": "#C80000",
+    "color": "#000000",
     "theme": "dark"
   },
   "icon": "images/icon.png",
