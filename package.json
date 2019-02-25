@@ -1,0 +1,135 @@
+{
+  "name": "vscode-hue",
+  "version": "1.0.0",
+  "publisher": "kelvien",
+  "homepage": "https://github.com/kelvien/vscode-hue",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kelvien/vscode-hue"
+  },
+  "engines": {
+    "vscode": "^1.31.1"
+  },
+  "license": "MIT",
+  "displayName": "hue",
+  "description": "This extension integrates your favorite hue lights with your favorite code editor!",
+  "categories": [
+    "Themes",
+    "Other"
+  ],
+  "galleryBanner": {
+    "color": "#C80000",
+    "theme": "dark"
+  },
+  "icon": "images/icon.png",
+  "main": "out/extension.js",
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "postinstall": "node ./node_modules/vscode/bin/install",
+    "test": "npm run compile && node ./node_modules/vscode/bin/test",
+    "vscode:prepublish": "npm run compile"
+  },
+  "devDependencies": {
+    "@types/node": "^10.12.21",
+    "@types/mocha": "^2.2.42",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.4",
+    "typescript": "^3.3.1",
+    "tslint": "^5.12.1",
+    "vscode": "^1.1.28"
+  },
+  "activationEvents": [
+    "*"
+  ],
+  "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "Hue",
+      "properties": {
+        "settings.hue.bridge": {
+          "type": "object",
+          "default": {},
+          "description": "Hue Bridge information"
+        },
+        "settings.hue.ambient.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "flag that indicates if ambient lights is enabled or not"
+        },
+        "settings.hue.ambient.rules": {
+          "type": "object",
+          "default": {},
+          "description": "sets of rules that dictates what colors to use on what file's theme/language"
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "extension.hue.registerBridge",
+        "title": "Hue: register bridge"
+      },
+      {
+        "command": "extension.hue.registerNewLights",
+        "title": "Hue: register new lights"
+      },
+      {
+        "command": "extension.hue.turnAllLightsOn",
+        "title": "Hue: turn all lights on"
+      },
+      {
+        "command": "extension.hue.turnAllLightsOff",
+        "title": "Hue: turn all lights off"
+      },
+      {
+        "command": "extension.hue.enableAmbientLights",
+        "title": "Hue: enable ambient lights"
+      },
+      {
+        "command": "extension.hue.disableAmbientLights",
+        "title": "Hue: disable ambient lights"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "extension.hue.turnAllLightsOn",
+        "key": "ctrl+h 1",
+        "mac": "cmd+h 1",
+        "when": "hue.bridgeIsRegistered"
+      },
+      {
+        "command": "extension.hue.turnAllLightsOff",
+        "key": "ctrl+h 0",
+        "mac": "cmd+h 0",
+        "when": "hue.bridgeIsRegistered"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "extension.hue.registerBridge"
+        },
+        {
+          "command": "extension.hue.registerNewLights",
+          "when": "hue.bridgeIsRegistered"
+        },
+        {
+          "command": "extension.hue.turnAllLightsOn",
+          "when": "hue.bridgeIsRegistered"
+        },
+        {
+          "command": "extension.hue.turnAllLightsOff",
+          "when": "hue.bridgeIsRegistered"
+        },
+        {
+          "command": "extension.hue.enableAmbientLights",
+          "when": "hue.bridgeIsRegistered"
+        },
+        {
+          "command": "extension.hue.disableAmbientLights",
+          "when": "hue.bridgeIsRegistered"
+        }
+      ]
+    }
+  }
+}
