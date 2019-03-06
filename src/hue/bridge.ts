@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 
 import { BridgeAPI, ConfigurationAPI } from './huetility'
+import { BridgeConfiguration, getHueConfiguration } from './config';
 
 /**
  * Context variables
@@ -20,31 +21,7 @@ const PAUSE_MILLISECONDS = 2 * 1000;
 export interface Bridge {
   id: string;
   internalipaddress: string;
-}
-
-/**
- * Bridge configuration
- */
-export class BridgeConfiguration {
-  id: string = '';
-  ipAddress: string = '';
-  username: string = '';
-
-  constructor(id?: string, ipAddress?: string, username?: string) {
-    if (id) {
-      this.id = id;
-    }
-    if (ipAddress) {
-      this.ipAddress = ipAddress;
-    }
-    if (username) {
-      this.username = username;
-    }
-  }
-
-  isRegistered(): boolean {
-    return !!this.id && !!this.ipAddress && !!this.username;
-  }
+  username?: string;
 }
 
 /**
@@ -55,18 +32,18 @@ export class BridgeQuickPickItem implements vscode.QuickPickItem {
   description: string;
   helpMessage: string;
 
-  configuration: BridgeConfiguration;
+  bridge: Bridge;
 
-  constructor(bridgeConfiguration: BridgeConfiguration) {
-    this.configuration = bridgeConfiguration;
-
-    this.label = `ID: ${this.configuration.id}`;
-    this.description = `IP Address: ${this.configuration.ipAddress}`;
+  constructor(bridge: Bridge) {
+    this.label = `ID: ${bridge.id}`;
+    this.description = `IP Address: ${bridge.internalipaddress}`;
     this.helpMessage = `${this.label} with ${this.description}`;
+
+    this.bridge = bridge;
   }
 
   setUsername(username: string): void {
-    this.configuration.username = username;
+    this.bridge.username = username;
   }
 }
 
@@ -75,8 +52,8 @@ export class BridgeQuickPickItem implements vscode.QuickPickItem {
  *
  * @param bridge Bridge that is going to be registered
  */
-export function attemptToRegisterBridge(bridge: BridgeQuickPickItem): (progress: vscode.Progress<{ increment: number }>) => Thenable<string> {
-  const configurationAPI = new ConfigurationAPI(bridge.configuration.id, bridge.configuration.ipAddress);
+export function attemptToRegisterBridge(bridgeQuickPickItem: BridgeQuickPickItem): (progress: vscode.Progress<{ increment: number }>) => Thenable<string> {
+  const configurationAPI = new ConfigurationAPI(bridgeQuickPickItem.bridge);
 
   return async (progress) => {
     progress.report({ increment: 0 });
@@ -111,31 +88,21 @@ export function discoverBridges(progress: vscode.Progress<{ increment: number }>
 }
 
 /**
- * Helper function to get Bridge configuration from VS Code
- */
-export function getBridgeConfiguration(): BridgeConfiguration {
-  const bridgeConfig: BridgeConfiguration | undefined = (vscode.workspace.getConfiguration('settings')).get('hue.bridge');
-  if (bridgeConfig) {
-    return new BridgeConfiguration(bridgeConfig.id, bridgeConfig.ipAddress, bridgeConfig.username);
-  }
-  return new BridgeConfiguration();
-}
-
-/**
  * Helper function to save Bridge configuration to VS Code
  */
-export async function saveBridgeConfiguration(bridgeConfig: BridgeConfiguration) {
-  await (vscode.workspace.getConfiguration('settings')).update('hue.bridge', bridgeConfig, vscode.ConfigurationTarget.Global);
+export async function saveBridgeConfiguration(bridge: BridgeConfiguration) {
+  await (vscode.workspace.getConfiguration()).update('hue.bridge', bridge, vscode.ConfigurationTarget.Global);
 }
 
 /**
  * COMMANDS
  */
-export async function registerBridge(test: string) {
+export async function registerBridge() {
   // Check if Hue Bridge configuration exists
-  const existingBridgeConfiguration = getBridgeConfiguration();
-  if (existingBridgeConfiguration && existingBridgeConfiguration.isRegistered()) {
-    const existingBridgeQuickPickItem = new BridgeQuickPickItem(existingBridgeConfiguration);
+  const hueConfiguration = getHueConfiguration();
+  if (hueConfiguration && hueConfiguration.bridge.isRegistered()) {
+    const bridge = hueConfiguration.bridge;
+    const existingBridge = new BridgeQuickPickItem({ id: bridge.id, internalipaddress: bridge.ipAddress, username: bridge.username });
     // Hue Bridge settings already exists, make sure user wants to replace their current Bridge settings
     const overrideSettingDecision: { label: string, value: boolean } | undefined = await vscode.window.showQuickPick<{ label: string, value: boolean }>([{
       label: 'No',
@@ -146,7 +113,7 @@ export async function registerBridge(test: string) {
     }], {
       canPickMany: false,
       ignoreFocusOut: false,
-      placeHolder: `You have Hue Bridge ${existingBridgeQuickPickItem.helpMessage} registered in your settings. Do you want to proceed and replace the current settings anyway?`
+      placeHolder: `You have Hue Bridge ${existingBridge.helpMessage} registered in your settings. Do you want to proceed and replace the current settings anyway?`
     });
     if (!overrideSettingDecision || (overrideSettingDecision && !overrideSettingDecision.value)) {
       return;
@@ -163,9 +130,7 @@ export async function registerBridge(test: string) {
     vscode.window.showWarningMessage('Unable to find Hue Bridge. Make sure that your Hue Bridge is connected to your network your computer is currently on.');
     return;
   }
-  const bridgeItems = bridges.map((bridge: any) => new BridgeQuickPickItem(
-      new BridgeConfiguration(bridge.id, bridge.internalipaddress))
-  );
+  const bridgeItems = bridges.map((bridge: any) => new BridgeQuickPickItem(bridge));
   const selectedBridge = await vscode.window.showQuickPick<BridgeQuickPickItem>(bridgeItems, {
     canPickMany: false,
     ignoreFocusOut: false,
@@ -184,7 +149,12 @@ export async function registerBridge(test: string) {
     return;
   }
   selectedBridge.setUsername(registeredUsername);
-  await saveBridgeConfiguration(selectedBridge.configuration);
+  const bridgeConfiguration = new BridgeConfiguration(
+    selectedBridge.bridge.id,
+    selectedBridge.bridge.internalipaddress,
+    selectedBridge.bridge.username
+  );
+  await saveBridgeConfiguration(bridgeConfiguration);
   vscode.window.showInformationMessage(`Hue Bridge ${selectedBridge.helpMessage} has successfully been registered.`);
   vscode.commands.executeCommand('setContext', CONTEXT_BRIDGE_IS_REGISTERED, true);
 }
