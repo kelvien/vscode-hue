@@ -1,6 +1,6 @@
 {
   "name": "vscode-hue",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "publisher": "KelvienHidayat",
   "homepage": "https://github.com/kelvien/vscode-hue",
   "repository": {
@@ -12,7 +12,7 @@
   },
   "license": "MIT",
   "displayName": "hue",
-  "description": "This extension integrates your favorite hue lights with your favorite code editor!",
+  "description": "This extension integrates your favorite Hue lights with your favorite code editor!",
   "categories": [
     "Themes",
     "Other"
@@ -49,20 +49,25 @@
       "type": "object",
       "title": "Hue",
       "properties": {
-        "settings.hue.bridge": {
+        "hue.bridge": {
           "type": "object",
           "default": {},
           "description": "Hue Bridge information"
         },
-        "settings.hue.ambient.enabled": {
+        "hue.defaultGroup": {
+          "type": "string",
+          "default": "",
+          "description": "Default Hue group name to turn on/off"
+        },
+        "hue.ambientLights.enabled": {
           "type": "boolean",
           "default": false,
-          "description": "flag that indicates if ambient lights is enabled or not"
+          "description": "Ambient lights flag"
         },
-        "settings.hue.ambient.rules": {
+        "hue.ambientLights.rules": {
           "type": "object",
           "default": {},
-          "description": "sets of rules that dictates what colors to use on what file's theme/language"
+          "description": "Ambient lights rules"
         }
       }
     },
@@ -76,12 +81,16 @@
         "title": "Hue: Register new lights"
       },
       {
-        "command": "extension.hue.turnAllLightsOn",
-        "title": "Hue: Turn all lights on"
+        "command": "extension.hue.setDefaultGroup",
+        "title": "Hue: Set default group"
       },
       {
-        "command": "extension.hue.turnAllLightsOff",
-        "title": "Hue: Turn all lights off"
+        "command": "extension.hue.turnDefaultGroupOn",
+        "title": "Hue: Turn default group on"
+      },
+      {
+        "command": "extension.hue.turnDefaultGroupOff",
+        "title": "Hue: Turn default group off"
       },
       {
         "command": "extension.hue.enableAmbientLights",
@@ -94,13 +103,13 @@
     ],
     "keybindings": [
       {
-        "command": "extension.hue.turnAllLightsOn",
+        "command": "extension.hue.turnDefaultGroupOn",
         "key": "ctrl+h 1",
         "mac": "cmd+h 1",
         "when": "hue.bridgeIsRegistered"
       },
       {
-        "command": "extension.hue.turnAllLightsOff",
+        "command": "extension.hue.turnDefaultGroupOff",
         "key": "ctrl+h 0",
         "mac": "cmd+h 0",
         "when": "hue.bridgeIsRegistered"
@@ -116,11 +125,15 @@
           "when": "hue.bridgeIsRegistered"
         },
         {
-          "command": "extension.hue.turnAllLightsOn",
+          "command": "extension.hue.setDefaultGroup",
           "when": "hue.bridgeIsRegistered"
         },
         {
-          "command": "extension.hue.turnAllLightsOff",
+          "command": "extension.hue.turnDefaultGroupOn",
+          "when": "hue.bridgeIsRegistered"
+        },
+        {
+          "command": "extension.hue.turnDefaultGroupOff",
           "when": "hue.bridgeIsRegistered"
         },
         {

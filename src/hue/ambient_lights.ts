@@ -1,115 +1,17 @@
 import * as vscode from 'vscode';
 
-import { getBridgeConfiguration } from './bridge';
 import { GroupsAPI, LightsAPI } from './huetility';
+import { defaultAmbientLightsRules } from './default_ambient_lights_rules';
+import { setDefaultGroupState } from './group';
+import { getHueConfiguration } from './config';
 
-// DEFAULT STATE OF LANGUAGES AND DEFAULT
-const DEFAULT_RULES: { [key: string]: any } = {
-  c: {
-    lights: "all",
-    state: {
-      "on": true,
-      "bri": 254,
-      "xy": [0.4432,0.5154]
-    }
-  },
-  css: {
-    lights: "all",
-    state: {
-      "on": true,
-      "bri": 254,
-      "xy": [0.262,0.3269]
-    }
-  },
-  cpp: {
-    lights: "all",
-    state: {
-      "on": true,
-      "bri": 254,
-      "xy": [0.3227,0.329]
-    }
-  },
-  csharp: {
-    lights: "all",
-    state: {
-      "on": true,
-      "bri": 254,
-      "xy": [0.3227,0.329]
-    }
-  },
-  dockerfile: {
-    lights: "all",
-    state: {
-      "on": true,
-      "bri": 254,
-      "xy": [0.139,0.081]
-    }
-  },
-  html: {
-    lights: "all",
-    state: {
-      "on": true,
-      "bri": 254,
-      "xy": [0.3292,0.3285]
-    }
-  },
-  jsonc: {
-    lights: "all",
-    state: {
-      "on": true,
-      "bri": 254,
-      "xy": [0.6531,0.2834]
-    }
-  },
-  java: {
-    lights: "all",
-    state: {
-      "on": true,
-      "bri": 254,
-      "xy": [0.6112,0.3261]
-    }
-  },
-  javascript: {
-    lights: "all",
-    state: {
-      "on": true,
-      "bri": 254,
-      "xy": [0.7,0.2986]
-    }
-  },
-  plaintext: {
-    lights: "all",
-    state: {
-      "on": true,
-      "bri": 254,
-      "xy": [0.3174,0.3207]
-    }
-  },
-  php: {
-    lights: "all",
-    state: {
-      "on": true,
-      "bri": 254,
-      "xy": [0.2703,0.1398]
-    }
-  },
-  python: {
-    lights: "all",
-    state: {
-      "on": true,
-      "bri": 254,
-      "xy": [0.2206,0.2948]
-    }
-  },
-  typescript: {
-    lights: "all",
-    state: {
-      "on": true,
-      "bri": 254,
-      "xy": [0.1649,0.1338]
-    }
+export async function setAmbientLights(isEnabled: boolean) {
+  await (vscode.workspace.getConfiguration()).update('hue.ambientLights.enabled', isEnabled, vscode.ConfigurationTarget.Global);
+  vscode.window.showInformationMessage('Hue: Ambient lights has been enabled');
+  if (vscode.window.activeTextEditor) {
+    adapt(vscode.window.activeTextEditor.document.languageId);
   }
-};
+}
 
 /**
  * Adapt lights to the language
@@ -117,26 +19,69 @@ const DEFAULT_RULES: { [key: string]: any } = {
  * @param languageID Language ID
  */
 export async function adapt (languageID: string) {
-  const bridgeConfiguration = getBridgeConfiguration();
-  if (bridgeConfiguration.isRegistered()) {
-    const rules = Object.assign({}, DEFAULT_RULES);
-    const userRules = await (vscode.workspace.getConfiguration('settings')).get('hue.ambient.rules');
-    Object.assign(rules, userRules);
+  const hueConfiguration = getHueConfiguration();
+  if (hueConfiguration.bridge && hueConfiguration.bridge.isRegistered()) {
+    const { enabled, rules: userRules } = hueConfiguration.ambientLights;
 
-    const rule = rules[languageID];
-    if (rule) {
-      const { groups, lights, state } = rule;
-      if (lights && state) {
-        const lightsAPI = new LightsAPI(bridgeConfiguration.id, bridgeConfiguration.ipAddress, bridgeConfiguration.username);
-        if (lights === 'all') {
-          await lightsAPI.setAllLightsState(state);
-        } else {
-          await lightsAPI.setLightsState(lights, state);
+    if (enabled) {
+      const rules = Object.assign(
+        {},
+        defaultAmbientLightsRules,
+        userRules
+      );
+
+      const rule: any = rules[languageID];
+      if (rule) {
+        const lightsAPI = new LightsAPI(hueConfiguration.bridge);
+        const groupsAPI = new GroupsAPI(hueConfiguration.bridge);
+        const { lightStates, groupStates, state } = rule;
+        if (lightStates) {
+          const lightPromises: Promise<{}>[] = [];
+          const lights = await lightsAPI.get();
+          for (const lightName of Object.keys(lightStates)) {
+            const lightIDs = Object.keys(lights)
+              .filter(lightID => lights[lightID].name === lightName);
+            const lightID = lightIDs[0];
+            lightPromises.push(
+                lightsAPI.setLightState(parseInt(lightID), lightStates[lightName])
+            );
+          }
+          return Promise.all(lightPromises);
+        } else if (groupStates) {
+          const groupPromises: Promise<{}>[] = [];
+          const groups = await groupsAPI.get();
+          for (const groupName of Object.keys(groupStates)) {
+            const groupIDs = Object.keys(groups)
+              .filter(groupID => groups[groupID].name === groupName);
+            const groupID = groupIDs[0];
+            groupPromises.push(
+                groupsAPI.setGroupState(parseInt(groupID), groupStates[groupName])
+            );
+          }
+          return Promise.all(groupPromises);
+        } else if (state) {
+          await setDefaultGroupState(state);
         }
-      } else if(groups && state) {
-        const groupsAPI = new GroupsAPI(bridgeConfiguration.id, bridgeConfiguration.ipAddress, bridgeConfiguration.username);
-        await groupsAPI.setGroupsState(groups, state);
       }
     }
   }
+}
+
+export async function setDefaultGroup() {
+  const defaultGroupInput = await vscode.window.showInputBox({
+    prompt: "Enter default group name",
+    placeHolder: 'i.e: Living room/Bedroom/Workstation'
+  });
+  if (!defaultGroupInput) {
+    return;
+  }
+  const defaultGroupName = defaultGroupInput.trim();
+  let message = 'Hue: Default group ';
+  if (!defaultGroupName) {
+    message += 'has been emptied. Defaulted to all lights';
+  } else {
+    message += `has been set to '${defaultGroupInput}'`;
+  }
+  await (vscode.workspace.getConfiguration()).update('hue.defaultGroup', defaultGroupName, vscode.ConfigurationTarget.Global);
+  vscode.window.showInformationMessage(message);0
 }

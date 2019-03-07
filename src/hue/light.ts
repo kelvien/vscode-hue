@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { getBridgeConfiguration } from './bridge';
+import { getHueConfiguration } from './config';
 import { LightsAPI } from './huetility';
 
 const SECOND_MILLISECONDS = 1000;
@@ -9,8 +9,8 @@ const SEARCH_SECONDS = 30;
  * COMMANDS
  */
 export async function registerNewLights() {
-  const existingBridgeConfiguration = getBridgeConfiguration();
-  const lightsAPI = new LightsAPI(existingBridgeConfiguration.id, existingBridgeConfiguration.ipAddress, existingBridgeConfiguration.username);
+  const { bridge } = getHueConfiguration();
+  const lightsAPI = new LightsAPI(bridge);
   await lightsAPI.searchLights();
   await vscode.window.withProgress({
     location: vscode.ProgressLocation.Notification,
@@ -42,8 +42,8 @@ export async function searchForLights(progress: vscode.Progress<{ increment: num
  * @param prompt Prompt flag to replace state
  */
 export async function turnAllLightsState(state: any, prompt?: boolean) {
-  const existingBridgeConfiguration = getBridgeConfiguration();
-  const lightsAPI = new LightsAPI(existingBridgeConfiguration.id, existingBridgeConfiguration.ipAddress, existingBridgeConfiguration.username);
+  const { bridge } = getHueConfiguration();
+  const lightsAPI = new LightsAPI(bridge);
   if (prompt) {
     const inputState = await vscode.window.showInputBox({
       prompt: "Enter lights state",
@@ -57,11 +57,4 @@ export async function turnAllLightsState(state: any, prompt?: boolean) {
     }
   }
   await lightsAPI.setAllLightsState(state);
-  let message = '';
-  if (state.on) {
-    message = 'on';
-  } else {
-    message = 'off';
-  }
-  vscode.window.showInformationMessage(`All lights have been turned ${message}`);
 }

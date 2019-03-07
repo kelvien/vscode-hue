@@ -1,38 +1,41 @@
 import * as vscode from 'vscode';
 
-import { CONTEXT_BRIDGE_IS_REGISTERED, getBridgeConfiguration, registerBridge } from './hue/bridge';
+import { CONTEXT_BRIDGE_IS_REGISTERED, registerBridge } from './hue/bridge';
 import { registerNewLights, turnAllLightsState } from './hue/light';
-import { adapt } from './hue/ambient_lights';
+import { setDefaultGroupState } from './hue/group';
+import { adapt, setAmbientLights, setDefaultGroup } from './hue/ambient_lights';
+import { getHueConfiguration } from './hue/config';
+
+function setContext() {
+  const hueConfiguration = getHueConfiguration();
+  if (!hueConfiguration.bridge.isRegistered()) {
+    vscode.commands.executeCommand('setContext', CONTEXT_BRIDGE_IS_REGISTERED, false);
+    return;
+  }
+  vscode.commands.executeCommand('setContext', CONTEXT_BRIDGE_IS_REGISTERED, true);
+  return;
+}
 
 /**
  * Activate entrypoint
  */
 export async function activate(context: vscode.ExtensionContext) {
-  // Set context on activation depending on the current Bridge configuration
-  const existingBridgeConfiguration = getBridgeConfiguration();
-  if (existingBridgeConfiguration.isRegistered()) {
-    vscode.commands.executeCommand('setContext', CONTEXT_BRIDGE_IS_REGISTERED, true);
-  }
+  // Set context on activation
+  setContext();
 
-  // Setup event listener to Bridge configuration in case user changes it manually in the future
+  // Set context on configuration changes events
   const bridgeConfigurationChangesListener = vscode.workspace.onDidChangeConfiguration(() => {
-    const bridgeConfiguration = getBridgeConfiguration();
-    if (bridgeConfiguration && bridgeConfiguration.isRegistered()) {
-      vscode.commands.executeCommand('setContext', CONTEXT_BRIDGE_IS_REGISTERED, true);
-      return;
-    }
-    vscode.commands.executeCommand('setContext', CONTEXT_BRIDGE_IS_REGISTERED, false);
-    return;
+    setContext();
   });
   context.subscriptions.push(bridgeConfigurationChangesListener);
 
-  // Setup event listener to the current active text editor
+  // Let Ambient Lights adapt on current active text editor events
   const changeActiveTextEditorListener = vscode.window.onDidChangeActiveTextEditor(async (e: vscode.TextEditor | undefined): Promise<any> => {
     if (!e) {
       return;
     }
-    const isAmbientLightsEnabled = await (vscode.workspace.getConfiguration('settings')).get('hue.ambient.enabled');
-    if (!isAmbientLightsEnabled) {
+    const hueConfiguration = getHueConfiguration();
+    if (!hueConfiguration.ambientLights.enabled) {
       return;
     }
     await adapt(e.document.languageId);
@@ -41,7 +44,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Register bridge command
   const registerBridgeCommand = vscode.commands.registerCommand('extension.hue.registerBridge', async () => {
-    await registerBridge("asd");
+    await registerBridge();
   });
   context.subscriptions.push(registerBridgeCommand);
 
@@ -52,53 +55,34 @@ export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(registerNewLightsCommand);
 
   // Turn all lights on command
-  const turnAllLightsOnCommand = vscode.commands.registerCommand('extension.hue.turnAllLightsOn', async () => {
-    await turnAllLightsState({
-      on: true,
-      bri: 254,
-      xy: [0.3227, 0.329] // white
-    });
+  const turnDefaultGroupOnCommand = vscode.commands.registerCommand('extension.hue.turnDefaultGroupOn', async () => {
+    await setDefaultGroupState({ on: true });
+    vscode.window.showInformationMessage('Default group has been turned on');
   });
-  context.subscriptions.push(turnAllLightsOnCommand);
+  context.subscriptions.push(turnDefaultGroupOnCommand);
 
   // Turn all lights off command
-  const turnOffAllLightsCommand = vscode.commands.registerCommand('extension.hue.turnAllLightsOff', async () => {
-    await turnAllLightsState({
-      on: false,
-      xy: [0.3227, 0.329] // white
-    });
+  const turnDefaultGroupCommand = vscode.commands.registerCommand('extension.hue.turnDefaultGroupOff', async () => {
+    await setDefaultGroupState({ on: false });
+    vscode.window.showInformationMessage('Default group has been turned off');
   });
-  context.subscriptions.push(turnOffAllLightsCommand);
+  context.subscriptions.push(turnDefaultGroupCommand);
 
-  // Change all lights state command
-  const changeAllLightsStateCommand = vscode.commands.registerCommand('extension.hue.changeAllLightsState', async () => {
-    await turnAllLightsState({}, true);
+  // Set default group command
+  const setDefaultGroupCommand = vscode.commands.registerCommand('extension.hue.setDefaultGroup', async () => {
+    await setDefaultGroup();
   });
-  context.subscriptions.push(changeAllLightsStateCommand);
-
-  // All groups command
-  const groupsCommand = vscode.commands.registerCommand('extension.hue.groups', async () => {
-    vscode.window.showInformationMessage('Groups');
-  });
-  context.subscriptions.push(groupsCommand);
+  context.subscriptions.push(setDefaultGroupCommand);
 
   // Enable ambient lights command
   const enableAmbientLightsCommand = vscode.commands.registerCommand('extension.hue.enableAmbientLights', async () => {
-    await (vscode.workspace.getConfiguration('settings')).update('hue.ambient.enabled', true, vscode.ConfigurationTarget.Global);
-    vscode.window.showInformationMessage('Hue: Ambient lights has been enabled');
-    if (vscode.window.activeTextEditor) {
-      adapt(vscode.window.activeTextEditor.document.languageId);
-    }
+    await setAmbientLights(true);
   });
   context.subscriptions.push(enableAmbientLightsCommand);
 
   // Disable ambient lights command
   const disableAmbientLightsCommand = vscode.commands.registerCommand('extension.hue.disableAmbientLights', async () => {
-    await (vscode.workspace.getConfiguration('settings')).update('hue.ambient.enabled', false, vscode.ConfigurationTarget.Global);
-    vscode.window.showInformationMessage('Hue: Ambient lights has been disabled');
-    if (vscode.window.activeTextEditor) {
-      adapt(vscode.window.activeTextEditor.document.languageId);
-    }
+    await setAmbientLights(false);
   });
   context.subscriptions.push(disableAmbientLightsCommand);
 }
@@ -107,9 +91,5 @@ export async function activate(context: vscode.ExtensionContext) {
  * Deactivate entrypoint
  */
 export async function deactivate() {
-  await turnAllLightsState({
-    on: true,
-    bri: 254,
-    xy: [0.3227, 0.329] // white
-  });
+  await turnAllLightsState({ on: true });
 }

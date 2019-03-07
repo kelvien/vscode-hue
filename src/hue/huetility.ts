@@ -1,3 +1,7 @@
+import { Bridge } from "./bridge";
+import { BridgeConfiguration } from "./config";
+import { Groups } from "./group";
+
 const RP = require('request-promise');
 
 const HandleSuccessResponse = (response: any) => {
@@ -11,7 +15,7 @@ const HandleSuccessResponse = (response: any) => {
  * Bridge APIs
  */
 export class BridgeAPI {
-  discover() {
+  discover(): Thenable<Bridge[]> {
     const url = 'https://discovery.meethue.com';
     return RP.get(url).then(HandleSuccessResponse);
   }
@@ -25,9 +29,9 @@ abstract class UnregisteredBridgeAPI {
   ipAddress: string;
   baseUrl: string;
 
-  constructor(id: string, ipAddress: string) {
-    this.id = id;
-    this.ipAddress = ipAddress;
+  constructor(bridge: Bridge) {
+    this.id = bridge.id;
+    this.ipAddress = bridge.internalipaddress;
     this.baseUrl = `http://${this.ipAddress}/api`;
   }
 }
@@ -38,10 +42,10 @@ abstract class UnregisteredBridgeAPI {
 abstract class RegisteredBridgeAPI extends UnregisteredBridgeAPI{
   username: string;
 
-  constructor(id: string, ipAddress: string, username: string) {
-    super(id, ipAddress);
-    this.username = username;
-    this.baseUrl = `${this.baseUrl}/${username}`;
+  constructor(bridge: BridgeConfiguration) {
+    super({ id: bridge.id, internalipaddress: bridge.ipAddress });
+    this.username = bridge.username;
+    this.baseUrl = `${this.baseUrl}/${bridge.username}`;
   }
 }
 
@@ -49,8 +53,8 @@ abstract class RegisteredBridgeAPI extends UnregisteredBridgeAPI{
  * Lights APIs
  */
 export class LightsAPI extends RegisteredBridgeAPI {
-  constructor(id: string, ipAddress: string, username: string) {
-    super(id, ipAddress, username);
+  constructor(bridge: BridgeConfiguration) {
+    super(bridge);
     this.baseUrl = `${this.baseUrl}/lights`;
   }
 
@@ -73,14 +77,14 @@ export class LightsAPI extends RegisteredBridgeAPI {
     return RP.get(this.baseUrl).then(HandleSuccessResponse);
   }
 
-  setLightState(lightID: string, state: any) {
+  setLightState(lightID: number, state: any) {
     return RP.put(`${this.baseUrl}/${lightID}/state`, {
       json: true,
       body: state
     }).then(HandleSuccessResponse);
   }
 
-  async setLightsState(lightIDs: string[], state: any): Promise<{}> {
+  async setLightsState(lightIDs: number[], state: any): Promise<{}> {
     const lightPromises: Promise<{}>[] = [];
     for (const lightID of lightIDs) {
       lightPromises.push(this.setLightState(lightID, state));
@@ -92,9 +96,13 @@ export class LightsAPI extends RegisteredBridgeAPI {
     const lights = await this.getAllLights();
     const lightPromises: Promise<{}>[] = [];
     for (const lightID in lights) {
-      lightPromises.push(this.setLightState(lightID, state));
+      lightPromises.push(this.setLightState(parseInt(lightID), state));
     }
     return Promise.all(lightPromises);
+  }
+
+  get() {
+    return RP.get(this.baseUrl).then(HandleSuccessResponse);
   }
 }
 
@@ -102,24 +110,28 @@ export class LightsAPI extends RegisteredBridgeAPI {
  * Groups API
  */
 export class GroupsAPI extends RegisteredBridgeAPI {
-  constructor(id: string, ipAddress: string, username: string) {
-    super(id, ipAddress, username);
+  constructor(bridge: BridgeConfiguration) {
+    super(bridge);
     this.baseUrl = `${this.baseUrl}/groups`;
   }
 
-  setGroupState(groupID: string, state: any) {
+  setGroupState(groupID: number, state: any) {
     return RP.put(`${this.baseUrl}/${groupID}/action`, {
       json: true,
       body: state
     }).then(HandleSuccessResponse)
   }
 
-  setGroupsState(groupIDs: string[], state: any) {
+  setGroupsState(groupIDs: number[], state: any) {
     const groupPromises: Promise<{}>[] = [];
     for (const groupID of groupIDs) {
       groupPromises.push(this.setGroupState(groupID, state));
     }
     return Promise.all(groupPromises);
+  }
+
+  get(): Groups {
+    return RP.get(this.baseUrl).then(HandleSuccessResponse);
   }
 }
 
