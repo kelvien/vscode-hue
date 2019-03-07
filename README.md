@@ -6,9 +6,10 @@ Controlling your Hue lights is just one keyboard shortcut away. And switching co
 
 See it in action
 ---
-![Controlling lights](images/example_1.gif)
+![Controlling lights](https://media.giphy.com/media/fnEnZqxf31650itlCF/giphy.gif)
 
-![Ambient Lights feature](images/example_2.gif)
+
+![Ambient Lights feature](https://media.giphy.com/media/5gYmjMEJbWdgXHcY7h/giphy.gif)
 
 [Download](https://marketplace.visualstudio.com/items?itemName=kelvienhidayat.vscode-hue) and give it a try
 
