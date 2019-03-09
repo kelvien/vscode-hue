@@ -7,7 +7,6 @@ import { getHueConfiguration } from './config';
 
 export async function setAmbientLights(isEnabled: boolean) {
   await (vscode.workspace.getConfiguration()).update('hue.ambientLights.enabled', isEnabled, vscode.ConfigurationTarget.Global);
-  vscode.window.showInformationMessage('Hue: Ambient lights has been enabled');
   if (vscode.window.activeTextEditor) {
     adapt(vscode.window.activeTextEditor.document.languageId);
   }
