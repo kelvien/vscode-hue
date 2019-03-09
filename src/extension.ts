@@ -77,12 +77,14 @@ export async function activate(context: vscode.ExtensionContext) {
   // Enable ambient lights command
   const enableAmbientLightsCommand = vscode.commands.registerCommand('extension.hue.enableAmbientLights', async () => {
     await setAmbientLights(true);
+    vscode.window.showInformationMessage('Hue: Ambient lights has been enabled');
   });
   context.subscriptions.push(enableAmbientLightsCommand);
 
   // Disable ambient lights command
   const disableAmbientLightsCommand = vscode.commands.registerCommand('extension.hue.disableAmbientLights', async () => {
     await setAmbientLights(false);
+    vscode.window.showInformationMessage('Hue: Ambient lights has been disabled');
   });
   context.subscriptions.push(disableAmbientLightsCommand);
 }
