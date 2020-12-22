@@ -115,11 +115,11 @@ export class GroupsAPI extends RegisteredBridgeAPI {
     this.baseUrl = `${this.baseUrl}/groups`;
   }
 
-  setGroupState(groupID: number, state: any) {
+  async setGroupState(groupID: number, state: any) {
     return RP.put(`${this.baseUrl}/${groupID}/action`, {
       json: true,
       body: state
-    }).then(HandleSuccessResponse)
+    }).then(HandleSuccessResponse);
   }
 
   setGroupsState(groupIDs: number[], state: any) {
