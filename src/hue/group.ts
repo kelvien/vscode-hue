@@ -52,5 +52,5 @@ export async function setDefaultGroupState(state: any) {
   const groupIDs = Object.keys(groups)
       .filter(groupID => groups[groupID].name === defaultGroup);
   const groupID = groupIDs[0] ? groupIDs[0] : 0;
-  turnGroupState(+groupID, state);
+  await turnGroupState(+groupID, state);
 }
